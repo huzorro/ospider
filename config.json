@@ -1,0 +1,12 @@
+{
+    "dbtype":"mysql",
+	"dburi":"ospider:t92ydUoLHQ0$VQGi@tcp(127.0.0.1:3306)/ospider?charset=utf8",
+	"pageSize":50,    
+    "flushCron":"20 * * * * *",
+    "taskQueueName":"spiderTaskQueueRoot1",
+    "resultQueueName":"spiderResultQueueRoot1",
+    "linkQueueName":"spiderLinkQueueRoot1",    
+    "maxVisits":1,
+    "userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.75 Safari/537.36",
+    "actorNums":1
+}

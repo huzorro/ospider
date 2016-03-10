@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title></title>
+    <link rel="shortcut icon" href="">
+    <link rel="stylesheet" href="/css/bootplus.min.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="/css/new.css">
+    <link rel="stylesheet" href="/css/bootplus-responsive.min.css">
+
+    <!--[if IE]>
+        <script src="https://cdn.jsdelivr.net/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="brand" href="#">网站自动更新系统</a>
+                <div class="nav-collapse collapse">
+                    <ul class="nav pull-right">
+                        <li class="pull-right">
+                            <a href="#">用户/<span class="badge badge-info">{{.User.UserName}}</span></a>
+                        </li>
+						 <li class="pull-right">
+                            <a href="#">站点设置<span class="badge badge-success">{{.Paginator.Nums}}</span></a>
+                        </li>
+						 <li class="pull-right">
+                            <a href="#">余额(元)//<span class="badge badge-important"></span></a>
+                        </li>
+                        <li class="pull-right">
+                            <a href="/logout">退出</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="span3 bs-docs-sidenav">
+                <ul class="nav nav-list bs-docs-sidenav affix">
+
+                    {{range .Menu}}
+                    <li><a href="{{.Name}}">{{.Title}}</a>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+            <div class="span9">
+               <section>
+                    <p class="page-header">添加设置</p>
+                    <div id="my-tab-content" class="tab-content">
+                   <div class="navbar-form pull-left">
+                     <input class="span2" type="text" placeholder="名称" name="Name">
+                     <input type="text" class="span2" placeholder="网站" name="Url">
+                     <!--请选择网站内容分类 -->
+                     <input type="hidden" name="GroupId" value="0">
+                     <select name="Category" class="span2" >
+                         <option >//请选择分类//</option>
+                         <option >//请选择分类//</option>
+                         <option >//请选择分类//</option>
+                     </select>
+                     
+                     <!--请选择更新内容的账户-->
+                     <select name="Member" class="span2">
+                         <option >//请选择网站用户//</option>
+                         <option >//请选择网站用户//</option>
+                         <option >//请选择网站用户//</option>                         
+                     </select>
+
+                     <!--请选择合适的爬虫规则-->
+                     <select name="RuleId" class="span2">
+                         <option >//请选择爬取规则//</option>
+                         <option >//请选择爬取规则//</option>
+                         <option >//请选择爬取规则//</option>                         
+                     </select>
+                     <!--请选择合适的定时器-->
+                     <select name="CronId"  class="span2">
+                         <option >//请选择定时器//</option>
+                         <option >//请选择定时器//</option>
+                         <option >//请选择定时器//</option>                         
+                     </select>
+                     
+                   </div>
+                     <div class="controls controls-row">
+                        <input type="checkbox" name="Position" value="1" checked><span class="help-inline">列表推荐</span>
+                        <input type="checkbox"  name="Position" value="2" checked><span class="help-inline">频道推荐</span>
+                        <input type="checkbox" name="Position" value="4" checked><span class="help-inline">首页推荐</span>
+                        <input type="radio"  name="Display" value="1" checked><span class="help-inline">显示</span>
+                        <input type="radio"  name="Display" value="0"><span class="help-inline">不显示</span>
+                        <input type="radio"  value="1" name="Check" checked><span class="help-inline">已审核</span>
+                        <input type="radio"  value="0" name="Check"><span class="help-inline">待审核</span>
+                        <button class="btn btn-primary" id="add">添加</button>
+                     </div>                   
+                   </div>
+               </section>
+                <section>
+                    <p class="page-header">设置列表</p>
+                    <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                        <li class="active"><a href="#spiderList" data-toggle="tab">全部</a>
+                        </li>
+                    </ul>
+                    <div id="my-tab-content" class="tab-content">
+                        <div class="tab-pane active" id="spiderList">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>用户</th>
+                                        <th>名称</th>
+                                        <th>网站</th> 
+                                        <th>分类</th>
+                                        <!--<th>group_id</th>-->
+                                        <th>管理员</th>
+                                        <th>推荐位</th>
+                                        <th>显示</th>
+                                        <th>审核</th> 
+                                        <th>爬虫规则</th>
+                                        <th>定时器</th>
+                                        <th>加入时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .Result}}
+                                        <tr>
+                                            <td>{{.Site.Id}}</td>
+                                            <td>{{.SpStatUser.UserName}}</td>
+                                            <td>{{.Site.Name}}</td> 
+                                            <td>{{.Site.Url}}</td>
+                                            <td>{{.Site.DocumentSet.CategoryTitle}}</td>
+                                            <td>{{.Site.DocumentSet.NickName}}</td>
+                                            <td>{{.Site.DocumentSet.Position}}</td>
+                                            <td>{{.Site.DocumentSet.Display}}</td>
+                                            <td>{{.Site.DocumentSet.Check}}</td>
+                                            <td>{{.Site.Rule.Name}}</td>
+                                            <td>{{.Site.Crontab.Name}}</td>
+                                            <td>{{.Site.Logtime}}</td>
+                                            {{if .Site.Status}}
+                                            <td>
+                                            <i class="icon-play-sign"></i>
+                                            </td>
+                                            {{else}}
+                                            <td>
+                                            <i class="icon-pause"></i>
+                                            </td>
+                                            {{end}}
+                                            <td><button class="btn btn-primary" name="operate" value="{{.Site.Id}}"><i class="icon-external-link"></i></button></td>
+                                        </tr>
+                                    {{end}}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="pagination pagination-right">
+                    {{if gt .Paginator.PageNums 1}}
+                    <ul class="pagination pagination-sm">
+                        {{if .Paginator.HasPrev}}
+                            <li><a href="{{.Paginator.PageLinkFirst}}">第一页</a></li>
+                            <li><a href="{{.Paginator.PageLinkPrev}}">&lt;</a></li>
+                        {{else}}
+                            <li class="disabled"><a>第一页</a></li>
+                            <li class="disabled"><a>&lt;</a></li>
+                        {{end}}
+                        {{range $index, $page := .Paginator.Pages}}
+                            <li {{if $.Paginator.IsActive .}} class="active"{{end}}>
+                                <a href="{{$.Paginator.PageLink $page}}">{{$page}}</a>
+                            </li>
+                        {{end}}
+                        {{if .Paginator.HasNext}}
+                            <li><a href="{{.Paginator.PageLinkNext}}">&gt;</a></li>
+                            <li><a href="{{.Paginator.PageLinkLast}}">尾页</a></li>
+                        {{else}}
+                            <li class="disabled"><a>&gt;</a></li>
+                            <li class="disabled"><a>尾页</a></li>
+                        {{end}}
+                    </ul>
+                    {{end}}
+                    </div>
+                </section>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div id="editRuleModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">站点管理</h3>
+            </div>
+            <div class="modal-body">
+               <input type="hidden" id="Id">
+                   <div class="navbar-form pull-left">
+                     <input class="span2" type="text" placeholder="名称" id="Name">
+                     <input type="text" class="span2" placeholder="网站" id="Url">
+                     <!--请选择网站内容分类 -->
+                     <!--<input type="hidden" name="GroupId" value="0">-->
+                     <select id="Category" class="span2" >
+                         <option >//请选择分类//</option>
+                         <option >//请选择分类//</option>
+                         <option >//请选择分类//</option>
+                     </select>
+                     
+                     <!--请选择更新内容的账户-->
+                     <select id="Member" class="span2">
+                         <option >//请选择网站用户//</option>
+                         <option >//请选择网站用户//</option>
+                         <option >//请选择网站用户//</option>                         
+                     </select>
+
+                     <!--请选择合适的爬虫规则-->
+                     <select id="RuleId" class="span2">
+                         <option >//请选择爬取规则//</option>
+                         <option >//请选择爬取规则//</option>
+                         <option >//请选择爬取规则//</option>                         
+                     </select>
+                     <!--请选择合适的定时器-->
+                     <select id="CronId"  class="span2">
+                         <option >//请选择定时器//</option>
+                         <option >//请选择定时器//</option>
+                         <option >//请选择定时器//</option>                         
+                     </select>
+                     
+                   </div>
+                     <div class="controls controls-row">
+                        <input type="checkbox" name="Position_edit" value=1 ><span class="help-inline">列表推荐</span>
+                        <input type="checkbox"  name="Position_edit" value=2 ><span class="help-inline">频道推荐</span>
+                        <input type="checkbox" name="Position_edit" value=4 ><span class="help-inline">首页推荐</span>
+                        <input type="radio"  name="Display_edit" value=1 ><span class="help-inline">显示</span>
+                        <input type="radio"  name="Display_edit" value=0><span class="help-inline">不显示</span>
+                        <input type="radio"  value=1 name="Check_edit" ><span class="help-inline">已审核</span>
+                        <input type="radio"  value=0 name="Check_edit"><span class="help-inline">待审核</span>
+                     </div>                 
+                <label class="input-block-level">                                                                                
+                    当前状态
+                    <span id="Status">
+
+                    </span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true" id="edit">更新</button>
+                <button class="btn" data-dismiss="modal" aria-hidden="true" id="close">关闭</button>
+            </div>
+        </div>
+        <div id="infoModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">操作提示</h3>
+            </div>
+            <div class="modal-body">
+               <p></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/jquery-1.8.3.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+    <script src="/js/siteview.js"></script>
+</body>
+
+</html>

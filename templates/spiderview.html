@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title></title>
+    <link rel="shortcut icon" href="">
+    <link rel="stylesheet" href="/css/bootplus.min.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="/css/new.css">
+    <link rel="stylesheet" href="/css/bootplus-responsive.min.css">
+
+    <!--[if IE]>
+        <script src="https://cdn.jsdelivr.net/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="brand" href="#">网站自动更新系统</a>
+                <div class="nav-collapse collapse">
+                    <ul class="nav pull-right">
+                        <li class="pull-right">
+                            <a href="#">用户/<span class="badge badge-info">{{.User.UserName}}</span></a>
+                        </li>
+						 <li class="pull-right">
+                            <a href="#">爬虫/<span class="badge badge-success">{{.Paginator.Nums}}</span></a>
+                        </li>
+						 <li class="pull-right">
+                            <a href="#">余额(元)/<span class="badge badge-important"></span></a>
+                        </li>
+                        <li class="pull-right">
+                            <a href="/logout">退出</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="span3 bs-docs-sidenav">
+                <ul class="nav nav-list bs-docs-sidenav affix">
+
+                    {{range .Menu}}
+                    <li><a href="{{.Name}}">{{.Title}}</a>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+            <div class="span9">
+               <section>
+                    <p class="page-header">添加爬虫</p>
+
+                    <div id="my-tab-content" class="tab-content">
+                   <div class="navbar-form pull-left">
+                     <input class="span2" type="text" placeholder="爬虫名称" name="Name">
+                     <input class="span2" type="text" placeholder="爬虫任务队列名称" name="Task">
+                     <input class="span2" type="text" placeholder="爬取结果队列名称" name="Result">
+                     <button class="btn btn-primary" id="add">添加</button>
+                   </div>
+                   </div>
+               </section>
+                <section>
+                    <p class="page-header">爬虫列表</p>
+                    <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                        <li class="active"><a href="#spiderList" data-toggle="tab">全部</a>
+                        </li>
+                    </ul>
+                    <div id="my-tab-content" class="tab-content">
+                        <div class="tab-pane active" id="spiderList">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>id</th>
+                                        <th>用户</th>
+                                        <th>爬虫名称</th>
+                                        <th>爬虫任务队列名称</th>
+                                        <th>爬取结果队列名称</th>                                        
+                                        <th>加入时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .Result}}
+                                        <tr>
+                                            <td>{{.Manager.Id}}</td>
+                                            <td>{{.SpStatUser.UserName}}</td>
+                                            <td>{{.Manager.Name}}</td> 
+                                            <td>{{.Manager.Task}}</td>
+                                            <td>{{.Manager.Result}}</td>
+                                            <td>{{.Manager.Logtime}}</td>
+                                            {{if .Manager.Status}}
+                                            <td>
+                                            <i class="icon-play-sign"></i>
+                                            </td>
+                                            {{else}}
+                                            <td>
+                                            <i class="icon-pause"></i>
+                                            </td>
+                                            {{end}}
+                                            <td><button class="btn btn-primary" name="operate" value="{{.Manager.Id}}"><i class="icon-external-link"></i></button></td>
+                                        </tr>
+                                    {{end}}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="pagination pagination-right">
+                    {{if gt .Paginator.PageNums 1}}
+                    <ul class="pagination pagination-sm">
+                        {{if .Paginator.HasPrev}}
+                            <li><a href="{{.Paginator.PageLinkFirst}}">第一页</a></li>
+                            <li><a href="{{.Paginator.PageLinkPrev}}">&lt;</a></li>
+                        {{else}}
+                            <li class="disabled"><a>第一页</a></li>
+                            <li class="disabled"><a>&lt;</a></li>
+                        {{end}}
+                        {{range $index, $page := .Paginator.Pages}}
+                            <li {{if $.Paginator.IsActive .}} class="active"{{end}}>
+                                <a href="{{$.Paginator.PageLink $page}}">{{$page}}</a>
+                            </li>
+                        {{end}}
+                        {{if .Paginator.HasNext}}
+                            <li><a href="{{.Paginator.PageLinkNext}}">&gt;</a></li>
+                            <li><a href="{{.Paginator.PageLinkLast}}">尾页</a></li>
+                        {{else}}
+                            <li class="disabled"><a>&gt;</a></li>
+                            <li class="disabled"><a>尾页</a></li>
+                        {{end}}
+                    </ul>
+                    {{end}}
+                    </div>
+                </section>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div id="editSpiderModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">爬虫管理</h3>
+            </div>
+            <div class="modal-body">
+               <input type="hidden" id="Id">
+                <label class="input-block-level">
+                    爬虫名称
+                    <input type="text" id="Name" class="input-small">
+                </label>
+                <label  class="input-block-level">爬虫任务队列名称
+                    <input type="text" id="Task" class="input-small"></label>
+                <label  class="input-block-level">爬取结果队列名称
+                    <input type="text" id="Result" class="input-small"></label>                    
+                <label class="input-block-level">
+                    当前状态
+                    <span id="Status">
+
+                    </span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true" id="edit">更新</button>
+                <button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+            </div>
+        </div>
+        <div id="infoModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="myModalLabel">操作提示</h3>
+            </div>
+            <div class="modal-body">
+               <p></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/jquery-1.8.3.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
+    <script src="/js/spiderview.js"></script>
+</body>
+
+</html>

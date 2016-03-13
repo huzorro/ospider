@@ -42,6 +42,8 @@ func main() {
     restfulPtr := flag.Bool("restful", false, "restful start")
     //template path
     templatePath := flag.String("template", "templates", "template path")
+    //Static path
+    staticPath := flag.String("static", "public", "Static path")
     
 	flag.Parse()
 	//json config
@@ -74,7 +76,7 @@ func main() {
 	}
 
 	mtn = martini.Classic()
-
+    mtn.Use(martini.Static(*staticPath))    
 	mtn.Map(logger)
 	mtn.Map(redisPool)
 	mtn.Map(db)

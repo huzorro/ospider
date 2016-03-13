@@ -40,6 +40,8 @@ func main() {
     spiderPtr := flag.Bool("spider", false, "spider start")
     //restful
     restfulPtr := flag.Bool("restful", false, "restful start")
+    //template path
+    templatePath := flag.String("template", "templates", "template path")
     
 	flag.Parse()
 	//json config
@@ -97,6 +99,7 @@ func main() {
 	//render
 	rOptions := render.Options{}
 	rOptions.Extensions = []string{".tmpl", ".html"}
+    rOptions.Directory = *templatePath
 	rOptions.Funcs = []template.FuncMap{util.FuncMaps}
 	mtn.Use(render.Renderer(rOptions))
 

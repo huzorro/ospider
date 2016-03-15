@@ -22,7 +22,7 @@ func (self TaskContent) Handler() {
 
 	linkQueue := redismq.CreateQueue("localhost", "6379", "", 0, self.Cfg.LinkQueueName)
 	resultQueue := redismq.CreateQueue("localhost", "6379", "", 0, self.Cfg.ResultQueueName)
-	if consumer, err = linkQueue.AddConsumer("consumer"); err != nil {
+	if consumer, err = linkQueue.AddConsumer("consumer_processor_1"); err != nil {
 		self.Log.Printf("Queue add consumer fails %s", err)
 		return
 	}

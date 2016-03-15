@@ -28,7 +28,7 @@ func (self ResultService) Handler() {
 		err      error
 	)
 
-	if consumer, err = self.Queue.AddConsumer("consumer"); err != nil {
+	if consumer, err = self.Queue.AddConsumer("consumer_cms_1"); err != nil {
 		self.Log.Printf("Queue add consumer fails %s", err)
 		return
 	}

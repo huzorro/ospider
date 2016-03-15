@@ -52,9 +52,9 @@ func (self ResultService) Handler() {
 			self.Log.Printf("%s", pack.Payload)
             go func() {
                 self.Consumer.Consume(pack)
+                pack.Ack()
                 <-sem
             }()
-			pack.Ack()
 		}
 	}()
 }

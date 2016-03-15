@@ -31,5 +31,5 @@ func (consumer *Consumer) Consume(pack *redismq.Package) {
     for _, p := range consumer.processors {
         p.Process(pack.Payload)
     }
-    pack.Ack()
+    // pack.Ack()
 }

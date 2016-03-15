@@ -54,7 +54,7 @@ func (self ResultService) Handler() {
                 self.Consumer.Consume(pack)
                 <-sem
             }()
-			// pack.Ack()
+			pack.Ack()
 		}
 	}()
 }

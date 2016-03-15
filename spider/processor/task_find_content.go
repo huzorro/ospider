@@ -73,6 +73,7 @@ func (self TaskContent) Handler() {
 								self.Log.Printf("get redis client fails %s", err)
 							} else {
 								redisClient.Set(site.Rule.Url, string(siteStr))
+								redisClient.Expire(site.Rule.Url, 60*60*48)
 							}
 						}
 					}

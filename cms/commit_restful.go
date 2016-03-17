@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-
+    "time"
 	"github.com/huzorro/ospider/common"
 	"github.com/huzorro/ospider/web/handler"
 )
@@ -22,7 +22,10 @@ type Document struct {
     Position int64 `json:"position"`
     Display int64 `json:"display"`
     Status int64 `json:"status"`
+    Create int64 `json:"create_time"`
+    Update int64 `json:"update_time"`
 }
+
 type Article struct {
     Id int64 `json:"id"`
     Content string `json:"content"`
@@ -57,6 +60,8 @@ func (self *CommitRestful) Process(payload string) {
     documentArticle.Document.Status = site.DocumentSet.Check
     documentArticle.Document.Title = site.Rule.Selector.Title
     documentArticle.Document.Uid = site.Uid
+    documentArticle.Document.Create = time.Now().Unix()
+    documentArticle.Document.Update = time.Now().Unix()
     
     if resultJson, err = json.Marshal(documentArticle); err != nil {
         self.Log.Printf("json Marshal fails %s", err)

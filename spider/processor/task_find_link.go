@@ -1,72 +1,75 @@
 package processor
 
-
-
 import (
+	"encoding/json"
+	"fmt"
+	"time"
+	"github.com/adjust/rmq"
 	"github.com/huzorro/ospider/common"
 	"github.com/huzorro/ospider/web/handler"
-	"github.com/adjust/redismq"
-	"encoding/json"
 )
 
 type Task struct {
-    Cfg
-    common.Ospider
-    *redismq.Queue          
+	Cfg
+	common.Ospider
+	rmq.Connection
 }
-func (self Task) Handler() {
-    var(
-        site handler.Site
-        consumer *redismq.Consumer
-        pack *redismq.Package
-        err error
-    )
-    
-    if consumer, err = self.Queue.AddConsumer("consumer_processor_2"); err != nil {
-        self.Log.Printf("Queue add consumer fails %s", err)
-        return
-    }
-    linkQueue := redismq.CreateQueue("localhost", "6379", "", 0, self.Cfg.LinkQueueName)
-    go func() {
-        sem := make(chan interface{}, self.Cfg.ActorNums)
-        defer close(sem)
-        for {
-            sem <- 0            
-            if pack, err = consumer.Get(); err != nil {
-                self.Log.Printf("consumer get  package fails then pack.Fail() %s", err)
-                if pack, err = consumer.GetUnacked(); err != nil {
-                    self.Log.Printf("consumer get GetUnacked package fails then pack.Fail() %s", err)                    
-                    continue
-                }               
-            } 
+type Consumer struct {
+	name   string
+	count  int
+	before time.Time
+	task   Task
+}
 
-            if err = json.Unmarshal([]byte(pack.Payload), &site); err != nil {
-                self.Log.Printf("json Unmarshal fails %s", err)
-                continue
-            }
-            self.Log.Printf("%s", pack.Payload)
-            go func() {
-                attach := make(map[string]interface{})
-                attach["site"] = site
-                spider, ext := NewSpiderLink(self.Cfg, attach)                
-                if err := spider.Run(site.Rule.Url); err != nil { 
-                    self.Log.Printf("spider find link fails %s", err) 
-                    self.Log.Println(ext.Attach)  
-                    links := ext.Attach["links"].([]string)
-                    for _, v := range links {
-                        site.Rule.Url = v
-                        if siteStr, err := json.Marshal(site); err != nil {
-                            self.Log.Printf("json Marshal fails %s", err)
-                        } else {                            
-                            linkQueue.Put(string(siteStr))
-                        }
-                        
-                    }                                      
-                } 
-                pack.Ack()
-                <- sem   
-            }()
-            
-        }
-    }()
+func NewConsumer(tag int, task Task) *Consumer {
+	return &Consumer{
+		name:   fmt.Sprintf("consumer%d", tag),
+		count:  0,
+		before: time.Now(),
+		task:   task,
+	}
+}
+func (consumer *Consumer) Consume(delivery rmq.Delivery) {
+	var (
+		site      handler.Site
+		linkQueue rmq.Queue
+		err       error
+	)
+	consumer.count++
+    linkQueue = consumer.task.Connection.OpenQueue(consumer.task.Cfg.LinkQueueName)
+	consumer.task.Log.Printf("%s consumed %d %s", consumer.name, consumer.count, delivery.Payload())
+	if err = json.Unmarshal([]byte(delivery.Payload()), &site); err != nil {
+		consumer.task.Log.Printf("json Unmarshal fails %s", err)
+		delivery.Ack()
+		return
+	}
+	attach := make(map[string]interface{})
+	attach["site"] = site
+	spider, ext := NewSpiderLink(consumer.task.Cfg, attach)
+	if err := spider.Run(site.Rule.Url); err != nil {
+		links := ext.Attach["links"].([]string)
+		for _, v := range links {
+			site.Rule.Url = v
+			if siteStr, err := json.Marshal(site); err != nil {
+				consumer.task.Log.Printf("json Marshal fails %s", err)
+			} else {
+				linkQueue.Publish(string(siteStr))
+			}
+
+		}
+	}
+	delivery.Ack()
+}
+
+func (self Task) Handler() {
+	var (
+		taskQueue rmq.Queue
+	)
+	taskQueue = self.Connection.OpenQueue(self.Cfg.TaskQueueName)
+	taskQueue.StartConsuming(self.UnackedLimit, 500*time.Millisecond)
+
+	for i := 0; i < self.NumConsumers; i++ {
+		name := fmt.Sprintf("consumer %d", i)
+		taskQueue.AddConsumer(name, NewConsumer(i, self))
+	}
 }

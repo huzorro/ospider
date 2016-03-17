@@ -2,100 +2,107 @@ package processor
 
 import (
 	"encoding/json"
-
-	"github.com/adjust/redismq"
+	"fmt"
+	"time"
+	"github.com/adjust/rmq"
 	"github.com/gosexy/redis"
+	"github.com/huzorro/ospider/common"
 	"github.com/huzorro/ospider/web/handler"
 )
 
 type TaskContent struct {
-	Task
+	Cfg
+	common.Ospider
+	rmq.Connection
+}
+type ConsumerContent struct {
+	name    string
+	count   int
+	before  time.Time
+	content TaskContent
 }
 
-func (self TaskContent) Handler() {
+func NewConsumerLink(tag int, task TaskContent) *ConsumerContent {
+	return &ConsumerContent{
+		name:    fmt.Sprintf("consumer%d", tag),
+		count:   0,
+		before:  time.Now(),
+		content: task,
+	}
+}
+func (consumer *ConsumerContent) Consume(delivery rmq.Delivery) {
 	var (
-		site     handler.Site
-		consumer *redismq.Consumer
-		pack     *redismq.Package
-		err      error
+		site        handler.Site
+		resultQueue rmq.Queue
+		err         error
 	)
-
-	linkQueue := redismq.CreateQueue("localhost", "6379", "", 0, self.Cfg.LinkQueueName)
-	resultQueue := redismq.CreateQueue("localhost", "6379", "", 0, self.Cfg.ResultQueueName)
-	if consumer, err = linkQueue.AddConsumer("consumer_processor_1"); err != nil {
-		self.Log.Printf("Queue add consumer fails %s", err)
+	consumer.count++
+	resultQueue = consumer.content.Connection.OpenQueue(consumer.content.Cfg.ResultQueueName)
+	consumer.content.Log.Printf("%s consumed %d %s", consumer.name, consumer.count, delivery.Payload())
+	if err = json.Unmarshal([]byte(delivery.Payload()), &site); err != nil {
+		consumer.content.Log.Printf("json Unmarshal fails %s", err)
+		delivery.Ack()
 		return
 	}
-	go func() {
-		sem := make(chan interface{}, self.Cfg.ActorNums)
-		defer close(sem)
-		for {
-			sem <- 0
-			if pack, err = consumer.Get(); err != nil {
-				self.Log.Printf("consumer get  package fails then pack.Fail() %s", err)
-				if pack, err = consumer.GetUnacked(); err != nil {
-					self.Log.Printf("consumer get Unacked package fails then pack.Fail() %s", err)
-					continue
-				}
-			}
-
-			if err = json.Unmarshal([]byte(pack.Payload), &site); err != nil {
-				self.Log.Printf("json Unmarshal fails %s", err)
-				continue
-			}
-			self.Log.Printf("%s", pack.Payload)
-			go func() {
-				attach := make(map[string]interface{})
-				attach["site"] = site
-				//查找爬取历史
-				var (
-					redisClient *redis.Client
-					reviewStr   string
-					review      handler.Site
-				)
-				if redisClient, err = self.Ospider.P.Get(); err != nil {
-					defer self.Ospider.P.Close(redisClient)
-					self.Log.Printf("get redis client fails %s", err)
-				}
-				if reviewStr, err = redisClient.Get(site.Rule.Url); err != nil {
-					self.Log.Printf("not foud history data in review data for key:%s", site.Rule.Url)
-					spider, ext := NewSpiderContent(self.Cfg, attach)
-					if err := spider.Run(site.Rule.Url); err != nil {
-						self.Log.Printf("spider find content fails %s", err)
-						site = ext.Attach["site"].(handler.Site)
-						if siteStr, err := json.Marshal(site); err != nil {
-							self.Log.Printf("site Marshal fails %s", err)
-						} else {
-							resultQueue.Put(string(siteStr))
-							//写入redis－历史记录
-							if redisClient, err := self.Ospider.P.Get(); err != nil {
-								defer self.Ospider.P.Close(redisClient)
-								self.Log.Printf("get redis client fails %s", err)
-							} else {
-								redisClient.Set(site.Rule.Url, string(siteStr))
-								redisClient.Expire(site.Rule.Url, 60*60*48)
-							}
-						}
-					}
+	attach := make(map[string]interface{})
+	attach["site"] = site
+	//查找爬取历史
+	var (
+		redisClient *redis.Client
+		reviewStr   string
+		review      handler.Site
+	)
+	if redisClient, err = consumer.content.Ospider.P.Get(); err != nil {
+		defer consumer.content.Ospider.P.Close(redisClient)
+		consumer.content.Log.Printf("get redis client fails %s", err)
+	}
+	if reviewStr, err = redisClient.Get(site.Rule.Url); err != nil {
+		consumer.content.Log.Printf("not foud history data in review data for key:%s", site.Rule.Url)
+		spider, ext := NewSpiderContent(consumer.content.Cfg, attach)
+		if err := spider.Run(site.Rule.Url); err != nil {
+			consumer.content.Log.Printf("spider find content fails %s", err)
+			site = ext.Attach["site"].(handler.Site)
+			if siteStr, err := json.Marshal(site); err != nil {
+				consumer.content.Log.Printf("site Marshal fails %s", err)
+			} else {
+				resultQueue.Publish(string(siteStr))
+				//写入redis－历史记录
+				if redisClient, err := consumer.content.Ospider.P.Get(); err != nil {
+					defer consumer.content.Ospider.P.Close(redisClient)
+					consumer.content.Log.Printf("get redis client fails %s", err)
 				} else {
-					if err = json.Unmarshal([]byte(reviewStr), &review); err != nil {
-						self.Log.Printf("json Unmarshal fails %s", err)
-					} else {
-						if review.Id != site.Id {
-							site.Rule.Selector.Title = review.Rule.Selector.Title
-							site.Rule.Selector.Content = review.Rule.Selector.Content
-							if siteStr, err := json.Marshal(site); err != nil {
-								self.Log.Printf("site Marshal fails %s", err)
-							} else {
-								resultQueue.Put(string(siteStr))
-							}
-						}
-					}
+					redisClient.Set(site.Rule.Url, string(siteStr))
+					redisClient.Expire(site.Rule.Url, 60*60*48)
 				}
-				pack.Ack()
-				<-sem
-			}()
-
+			}
 		}
-	}()
+	} else {
+		if err = json.Unmarshal([]byte(reviewStr), &review); err != nil {
+			consumer.content.Log.Printf("json Unmarshal fails %s", err)
+		} else {
+			if review.Id != site.Id {
+				site.Rule.Selector.Title = review.Rule.Selector.Title
+				site.Rule.Selector.Content = review.Rule.Selector.Content
+				if siteStr, err := json.Marshal(site); err != nil {
+					consumer.content.Log.Printf("site Marshal fails %s", err)
+				} else {
+					resultQueue.Publish(string(siteStr))
+				}
+			}
+		}
+	}
+    delivery.Ack()
 }
+func (self TaskContent) Handler() {
+	var (
+		linkQueue rmq.Queue
+	)
+	linkQueue = self.Connection.OpenQueue(self.Cfg.LinkQueueName)
+	linkQueue.StartConsuming(self.UnackedLimit, 500*time.Millisecond)
+
+	for i := 0; i < self.NumConsumers; i++ {
+		name := fmt.Sprintf("consumer %d", i)
+		linkQueue.AddConsumer(name, NewConsumerLink(i, self))
+	}
+}
+

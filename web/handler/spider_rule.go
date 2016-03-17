@@ -192,7 +192,8 @@ func EditRule(r *http.Request, w http.ResponseWriter, db *sql.DB,
         log.Printf("post From value [%s] is empty", "Title//Content//Section//Name//Url//Charset")
         rs, _ := json.Marshal(s)
         return http.StatusOK, string(rs)             
-    }       
+    }
+           
 	value := session.Get(user.SESSION_KEY_QUSER)
 	if v, ok := value.([]byte); ok {
 		json.Unmarshal(v, &spUser)
@@ -214,7 +215,7 @@ func EditRule(r *http.Request, w http.ResponseWriter, db *sql.DB,
     } 
     if _, err = stmtIn.Exec(rule.Name, rule.SpiderId, rule.Url, js, 
                             rule.Status, rule.Id, spUser.Id); err != nil {
-		log.Printf("update crontab fails %s", err)
+		log.Printf("update spider rule fails %s", err)
 		rs, _ := json.Marshal(s)
 		return http.StatusOK, string(rs)         
     }

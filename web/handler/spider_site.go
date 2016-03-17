@@ -325,7 +325,6 @@ func GetSites(r *http.Request, w http.ResponseWriter, db *sql.DB, log *log.Logge
     log.Printf("%s", sqlStr)
     stmtOut, err = db.Prepare(sqlStr)
     defer stmtOut.Close()
-    log.Printf("%+v", stmtOut)
 	rows, err := stmtOut.Query(cfg.PageSize*(destPn-1), cfg.PageSize)
     defer rows.Close()
 	if err != nil {

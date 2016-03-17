@@ -5,8 +5,10 @@
     "flushCron":"20 * * * * *",
     "taskQueueName":"spiderTaskQueueRoot1",
     "resultQueueName":"spiderResultQueueRoot1",
-    "linkQueueName":"spiderLinkQueueRoot1",    
+    "linkQueueName":"spiderLinkQueueRoot1",
+    "unackedLimit":50,
+    "numConsumers":2,
     "maxVisits":1,
     "userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.75 Safari/537.36",
-    "actorNums":1
+    "actorNums":2
 }

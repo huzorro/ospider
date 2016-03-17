@@ -1,35 +1,60 @@
 package cms
 
-import (    
+import (
 	"fmt"
+	"time"
+
+	"github.com/adjust/rmq"
 	"github.com/huzorro/ospider/common"
-	"github.com/huzorro/ospider/spider/processor"    
-	"github.com/adjust/redismq"
+	"github.com/huzorro/ospider/spider/processor"
 )
+
 type Consumer struct {
 	name   string
-    cfg processor.Cfg
-    co common.Ospider
-    processors []common.Processor
-    
-}
-func NewConsumer(tag int, cfg processor.Cfg, co common.Ospider) *Consumer {
-	c := &Consumer{
-		name:   fmt.Sprintf("consumer%d", tag),
-        cfg:cfg,
-        co:co,
-	}
-    c.processors = make([]common.Processor, 0)
-    return c
+	count  int
+	before time.Time
+	task   *Task
 }
 
-func (consumer *Consumer) AddProcessor(p common.Processor) *Consumer {
-    consumer.processors = append(consumer.processors, p) 
-    return consumer 
+type Task struct {
+	Cfg processor.Cfg
+	common.Ospider
+	rmq.Connection
+	Processors []common.Processor
 }
-func (consumer *Consumer) Consume(pack *redismq.Package) {    
-    for _, p := range consumer.processors {
-        p.Process(pack.Payload)
-    }
-    // pack.Ack()
+
+func NewConsumer(tag int, task *Task) *Consumer {
+	c := &Consumer{
+		name:   fmt.Sprintf("consumer%d", tag),
+		count:  0,
+		before: time.Now(),
+		task:   task,
+	}
+	return c
+}
+
+func (self *Task) AddProcessor(p common.Processor) *Task {
+	self.Processors = append(self.Processors, p)
+	return self
+}
+func (consumer *Consumer) Consume(delivery rmq.Delivery) {
+	consumer.count++
+	consumer.task.Log.Printf("%s consumed %d %s", consumer.name, consumer.count, delivery.Payload())
+	for _, p := range consumer.task.Processors {
+		p.Process(delivery.Payload())
+	}
+	delivery.Ack()
+}
+
+func (self *Task) Handler() {
+	var (
+		resultQueue rmq.Queue
+	)
+	resultQueue = self.Connection.OpenQueue(self.Cfg.ResultQueueName)
+	resultQueue.StartConsuming(self.Cfg.UnackedLimit, 500*time.Millisecond)
+
+	for i := 0; i < self.Cfg.NumConsumers; i++ {
+		name := fmt.Sprintf("consumer %d", i)
+		resultQueue.AddConsumer(name, NewConsumer(i, self))
+	}
 }

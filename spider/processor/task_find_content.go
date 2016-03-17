@@ -80,7 +80,7 @@ func (consumer *ConsumerContent) Consume(delivery rmq.Delivery) {
 		if err = json.Unmarshal([]byte(reviewStr), &review); err != nil {
 			consumer.content.Log.Printf("json Unmarshal fails %s", err)
 		} else {
-			if review.Id != site.Id {
+			if review.Id != site.Id || review.Url != site.Url {
 				site.Rule.Selector.Title = review.Rule.Selector.Title
 				site.Rule.Selector.Content = review.Rule.Selector.Content
 				if siteStr, err := json.Marshal(site); err != nil {

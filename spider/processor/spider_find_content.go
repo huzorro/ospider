@@ -12,6 +12,7 @@ import (
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/transform"
 	"strings"
+	"net/url"
 )
 
 type ExtContent struct {
@@ -83,6 +84,22 @@ func (e *ExtContent) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goq
 			site.Rule.Selector.Content = string(u)
 		}
 	}
+    
+    //处理img的相对路径问题
+    sub, _ := goquery.NewDocumentFromReader(bytes.NewReader([]byte(strings.Join(htmls, ""))))
+    
+    sub.Find("img").Each(func(i int, q *goquery.Selection) {
+        src, _ := q.Attr("src")
+		u, _ := url.Parse(src)
+		if !u.IsAbs() {
+			u.Host = ctx.URL().Host
+			u.Scheme = ctx.URL().Scheme
+			u.RawQuery = u.Query().Encode()
+			dest := u.String()
+            site.Rule.Selector.Content = strings.Replace(site.Rule.Selector.Content, src, dest, -1)   
+		}		        
+    }) 
+       
 	e.Attach["site"] = site
 	return nil, true
 }

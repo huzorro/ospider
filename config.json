@@ -10,5 +10,6 @@
     "numConsumers":2,
     "maxVisits":1,
     "userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.75 Safari/537.36",
-    "actorNums":2
+    "actorNums":2,
+    "cacheExpire":168
 }

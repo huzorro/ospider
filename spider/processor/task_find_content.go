@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+    "strings"
 	"github.com/adjust/rmq"
 	"github.com/gosexy/redis"
 	"github.com/huzorro/ospider/common"
@@ -80,7 +81,7 @@ func (consumer *ConsumerContent) Consume(delivery rmq.Delivery) {
 		if err = json.Unmarshal([]byte(reviewStr), &review); err != nil {
 			consumer.content.Log.Printf("json Unmarshal fails %s", err)
 		} else {
-			if review.Id != site.Id || review.Url != site.Url {
+            if (review.Id & site.Id) != site.Id {
 				site.Rule.Selector.Title = review.Rule.Selector.Title
 				site.Rule.Selector.Content = review.Rule.Selector.Content
 				if siteStr, err := json.Marshal(site); err != nil {
@@ -88,7 +89,33 @@ func (consumer *ConsumerContent) Consume(delivery rmq.Delivery) {
 				} else {
 					resultQueue.Publish(string(siteStr))
 				}
-			}
+                //更新review的id和url
+                review.Id |= site.Id
+                review.Url += site.Url
+                if reviewBytes, err := json.Marshal(review); err != nil {
+                    consumer.content.Log.Printf("site Marshal fails %s", err)
+                } else {
+					redisClient.Set(site.Rule.Url, string(reviewBytes))
+					redisClient.Expire(site.Rule.Url, 60*60*consumer.content.CacheExpire)
+                }
+            } else if !strings.Contains(review.Url, site.Url) {
+				site.Rule.Selector.Title = review.Rule.Selector.Title
+				site.Rule.Selector.Content = review.Rule.Selector.Content
+				if siteStr, err := json.Marshal(site); err != nil {
+					consumer.content.Log.Printf("site Marshal fails %s", err)
+				} else {
+					resultQueue.Publish(string(siteStr))
+				}
+                //更新review的id和url
+                review.Id |= site.Id
+                review.Url += site.Url
+                if reviewBytes, err := json.Marshal(review); err != nil {
+                    consumer.content.Log.Printf("site Marshal fails %s", err)
+                } else {
+					redisClient.Set(site.Rule.Url, string(reviewBytes))
+					redisClient.Expire(site.Rule.Url, 60*60*consumer.content.CacheExpire)                    
+                }                
+            }
 		}
 	}
     delivery.Ack()

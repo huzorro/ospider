@@ -27,6 +27,8 @@ type Cfg struct {
 	UnackedLimit int `json:"unackedLimit"`
 	//queue consumer num
 	NumConsumers int `json:"numConsumers"`
+    //cache
+    CacheExpire uint64 `json:"cacheExpire"`
 }
 
 type Result struct {

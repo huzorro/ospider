@@ -46,14 +46,35 @@ type RuleRelation struct {
 func GetRulesApi(r *http.Request, w http.ResponseWriter, db *sql.DB,
 	log *log.Logger, session sessions.Session, p martini.Params) (int, string) {
 	var (
+		spUser        user.SpStatUser        
         rule Rule
         rules []Rule
 		js   []byte     
+        con  string
 	)
     s := user.Status{Status:"500", Text:"操作失败"}
 	r.ParseForm()
+	value := session.Get(user.SESSION_KEY_QUSER)
 
-    sqlStr := `select id, uid, name, spiderid, url, rule_json,status, logtime from spider_rule where status = 1`
+	if v, ok := value.([]byte); ok {
+		json.Unmarshal(v, &spUser)
+	} else {
+		log.Printf("session stroe type error")
+		http.Redirect(w, r, user.ERROR_PAGE_NAME, 301)
+        rs, _ := json.Marshal(s)
+		return http.StatusOK, string(rs)
+	}
+
+	switch spUser.Access.Rule {
+	case user.GROUP_PRI_ALL:
+	case user.GROUP_PRI_ALLOW:
+		con = "WHERE uid IN(" + strings.Join(spUser.Access.Group, ",") + ") and status = 1"
+	case user.GROUP_PRI_BAN:
+		con = "WHERE uid NOT IN(" + strings.Join(spUser.Access.Group, ",") + ") and status =1"
+	default:
+		log.Printf("group private erros")
+	}
+    sqlStr := `select id, uid, name, spiderid, url, rule_json,status, logtime from spider_rule ` + con
     stmtOut, err := db.Prepare(sqlStr)                                                                                                                          
 	rows, err := stmtOut.Query()
     defer func ()  {

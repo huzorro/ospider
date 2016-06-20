@@ -23,6 +23,7 @@ import (
 	"github.com/huzorro/ospider/cms"
 	"github.com/huzorro/ospider/common"
 	"github.com/huzorro/ospider/crontab"
+    "github.com/huzorro/ospider/attack"
 	"github.com/huzorro/ospider/spider/processor"
 	"github.com/huzorro/ospider/web/handler"
 )
@@ -37,6 +38,8 @@ func main() {
 	webPtr := flag.Bool("web", false, "web sm start")
 	//crontab
 	cronTaskPtr := flag.Bool("cron", false, "crontab task")
+    //attack
+    attackPtr := flag.Bool("attack", false, "attack task")
 	//spider
 	spiderPtr := flag.Bool("spider", false, "spider start")
 	//restful
@@ -119,6 +122,22 @@ func main() {
 		cronTask.Handler()
 		// cronTask := &crontab.Task{common.Ospider{Log:logger, P:redisPool, Db:db}, cfg}
 	}
+    if *attackPtr {
+        attackCron := crontab.NewAttack()
+        attackCron.Cfg = cfg.Cfg
+		pconnection := rmq.OpenConnection("attack_producer", "tcp", "localhost:6379", 0)
+		attackCron.Ospider = common.Ospider{Log: logger, P: redisPool, Db: db}  
+		attackCron.Queue = pconnection.OpenQueue(cfg.AttackQueueName)        
+        attackCron.Handler() 
+        
+		cconnection := rmq.OpenConnection("attack_consumer", "tcp", "localhost:6379", 0)
+		co := common.Ospider{Log: logger, P: redisPool, Db: db}
+        processors := make([]common.Processor, 0)
+        result := &attack.Task{cfg, co, cconnection, processors}
+        result.AddProcessor(attack.NewAttackSubmit(co))
+        result.Handler()        
+                     
+    }
 	if *spiderPtr {
 		//spider
 		// server := redismq.NewServer("localhost", "6379", "", 0, "9999")
@@ -185,6 +204,19 @@ func main() {
 		mtn.Post("/site/one", handler.GetSite)
 		mtn.Post("/site/edit", handler.EditSite)
 		mtn.Post("/site/add", handler.AddSite)
+        
+        //flood api
+        mtn.Get("/floodapiview", handler.GetFloods)
+        mtn.Post("/floodapi/one", handler.GetFloodApi)
+        mtn.Post("/floodapi/edit", handler.EditFloodApi)
+        mtn.Post("/floodapi/add", handler.AddFloodApi)
+        
+        //flood target
+        mtn.Get("/floodtargetview", handler.GetfloodTargets)
+        mtn.Post("/floodtarget/one", handler.GetFloodTarget)
+        mtn.Post("/floodtarget/edit", handler.EditfloodTarget)
+        mtn.Post("/floodtarget/add", handler.AddfloodTarget)
+        
 		go http.ListenAndServe(*portPtr, mtn)
 	}
 	select {}

@@ -23,6 +23,8 @@ type Cfg struct {
 	TaskQueueName string `json:"taskQueueName"`
 	//结果队列
 	ResultQueueName string `json:"resultQueueName"`
+    //attack
+    AttackQueueName string `json:"attackQueueName"`
 	//queue unacked limit
 	UnackedLimit int `json:"unackedLimit"`
 	//queue consumer num

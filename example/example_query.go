@@ -1,11 +1,13 @@
 package main
 
 import (
-	"github.com/PuerkitoBio/goquery"
+	// "github.com/PuerkitoBio/goquery"
+    // "fmt"
+	// "strings"
+	// // "regexp"
+	// "bytes"
+    "net/url"
     "fmt"
-	"strings"
-	// "regexp"
-	"bytes"
 )
 func main() {
     var htmls = make([]string, 0)
@@ -32,5 +34,7 @@ func main() {
     sub.Find("img").Each(func(i int, q *goquery.Selection) {
         fmt.Println(q.Attr("src"))
     })
+
+           
 }
 

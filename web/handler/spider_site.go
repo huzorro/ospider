@@ -157,6 +157,11 @@ func EditSite(r *http.Request, w http.ResponseWriter, db *sql.DB,
     site.DocumentSet.ModelId, _ = strconv.ParseInt(r.PostFormValue("ModelId"), 10, 64)
     site.Rule.Id, _  = strconv.ParseInt(r.PostFormValue("RuleId"), 10, 64)
     site.Crontab.Id, _ = strconv.ParseInt(r.PostFormValue("CronId"), 10, 64)
+    if site.DocumentSet.Category == 0 || site.DocumentSet.Member == 0 {
+		log.Printf("param is empty")
+		rs, _ := json.Marshal(s)
+		return http.StatusOK, string(rs)        
+    }     
 	value := session.Get(user.SESSION_KEY_QUSER)
 	if v, ok := value.([]byte); ok {
 		json.Unmarshal(v, &spUser)
@@ -227,7 +232,13 @@ func AddSite(r *http.Request, w http.ResponseWriter, db *sql.DB,
     site.DocumentSet.GroupId, _ = strconv.ParseInt(r.PostFormValue("GroupId"), 10, 64)
     site.DocumentSet.ModelId, _ = strconv.ParseInt(r.PostFormValue("ModelId"), 10, 64)
     site.Rule.Id, _  = strconv.ParseInt(r.PostFormValue("RuleId"), 10, 64)
-    site.Crontab.Id, _ = strconv.ParseInt(r.PostFormValue("CronId"), 10, 64)        
+    site.Crontab.Id, _ = strconv.ParseInt(r.PostFormValue("CronId"), 10, 64)  
+    
+    if site.DocumentSet.Category == 0 || site.DocumentSet.Member == 0 {
+		log.Printf("param is empty")
+		rs, _ := json.Marshal(s)
+		return http.StatusOK, string(rs)        
+    }       
 	value := session.Get(user.SESSION_KEY_QUSER)
 	if v, ok := value.([]byte); ok {
 		json.Unmarshal(v, &spUser)

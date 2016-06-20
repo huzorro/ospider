@@ -6,6 +6,7 @@
     "taskQueueName":"spiderTaskQueueRoot1",
     "resultQueueName":"spiderResultQueueRoot1",
     "linkQueueName":"spiderLinkQueueRoot1",
+    "attackQueueName":"attackQueue",
     "unackedLimit":50,
     "numConsumers":2,
     "maxVisits":1,

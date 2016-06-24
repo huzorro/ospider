@@ -9,6 +9,7 @@ import (
     "net/url"
     "fmt"
     "github.com/PuerkitoBio/goquery"
+    "net"
 )
 
 type AttackSubmit struct {
@@ -51,6 +52,10 @@ func (self *AttackSubmit) Process(payload string) {
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()
+    ips, err := net.LookupIP(attack.Url)
+    if  err == nil {
+        attack.Host = ips[0].String()
+    }
     query.Add("host", attack.Host)
     query.Add("method", attack.Method)
     query.Add("time", fmt.Sprintf("%d", attack.Time))

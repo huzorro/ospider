@@ -17,6 +17,7 @@ import (
 	"github.com/huzorro/ospider/util"
 	"github.com/huzorro/ospider/common"
 	"time"
+    "net"
 )
 
 type FloodTarget struct {
@@ -190,6 +191,18 @@ func AddfloodTarget(r *http.Request, w http.ResponseWriter, db *sql.DB,
             }            
         }         
 	}
+    if floodTarget.Url == "" || r.PostFormValue("CronId") == "" {
+		rs, _ := json.Marshal(s)
+		return http.StatusOK, string(rs)        
+    }
+    if floodTarget.Host == "" {
+        ips, err := net.LookupIP(floodTarget.Url)
+        if  err != nil {
+            rs, _ := json.Marshal(s)
+            return http.StatusOK, string(rs)              
+        }
+        floodTarget.Host = ips[0].String()
+    }
     floodTarget.Crontab.Id, _ = strconv.ParseInt(r.PostFormValue("CronId"), 10, 64)    
 	value := session.Get(user.SESSION_KEY_QUSER)
 	if v, ok := value.([]byte); ok {

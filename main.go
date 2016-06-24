@@ -134,7 +134,7 @@ func main() {
 		co := common.Ospider{Log: logger, P: redisPool, Db: db}
         processors := make([]common.Processor, 0)
         result := &attack.Task{cfg, co, cconnection, processors}
-        result.AddProcessor(attack.NewAttackSubmit(co))
+        result.AddProcessor(attack.NewAttackSubmit(co)).AddProcessor(attack.NewUpdateHost(co))
         result.Handler()        
                      
     }

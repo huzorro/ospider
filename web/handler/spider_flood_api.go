@@ -16,6 +16,8 @@ import (
 	"github.com/martini-contrib/render"
 	"github.com/huzorro/ospider/util"
 	"github.com/huzorro/ospider/common"
+    "encoding/binary"
+
 )
 
 type FloodApi struct {
@@ -236,7 +238,16 @@ func AddFloodApi(r *http.Request, w http.ResponseWriter, db *sql.DB,
 		rs, _ := json.Marshal(s)
 		return http.StatusOK, string(rs)        
     }
-    if _, err :=  stmtIn.Exec(spUser.Id, floodApi.Name, floodApi.Api, floodApi.Powerlevel, floodApi.Time); err != nil {
+	var powerlevelBuf = make([]byte, 8)
+	binary.BigEndian.PutUint32(powerlevelBuf[:4], uint32(floodApi.Powerlevel))
+	binary.BigEndian.PutUint32(powerlevelBuf[4:], uint32(floodApi.Powerlevel))
+    newPowerlevel := binary.BigEndian.Uint64(powerlevelBuf)
+    var timeBuf = make([]byte, 8)
+    
+    binary.BigEndian.PutUint32(timeBuf[:4], uint32(floodApi.Time))
+    binary.BigEndian.PutUint32(timeBuf[4:], uint32(floodApi.Time))
+    newTime := binary.BigEndian.Uint64(timeBuf)
+    if _, err :=  stmtIn.Exec(spUser.Id, floodApi.Name, floodApi.Api, newPowerlevel, newTime); err != nil {
         log.Printf("stmtIn exec fails %s", err) 
 		rs, _ := json.Marshal(s)
 		return http.StatusOK, string(rs)

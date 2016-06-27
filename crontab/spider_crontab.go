@@ -12,6 +12,7 @@ import (
 type Cfg struct {
 	common.Cfg
 	FlushCron string `json:"flushCron"`
+    RestCron string `json:"restCron"`
 }
 
 type Task struct {

@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
-    "fmt"
 	"strings"
 	// "regexp"
 	"bytes"
-    "net"
+	"encoding/binary"
+	"net"
 )
 
 func netName() {
@@ -22,38 +23,61 @@ func netName() {
 	fmt.Println(cname) //www.a.shifen.com,查找规范的dns主机名字
 	host, _ := net.LookupHost("www.wxbsj.com")
 	fmt.Println(host) //[111.13.100.92 111.13.100.91],查找给定域名的host名称
-	ip, _ := net.LookupIP("www.baidu.com")
+	ip, _ := net.LookupIP("www.juanl.net")
 	fmt.Println(ip) //[111.13.100.92 111.13.100.91],查找给定域名的ip地址,可通过nslookup www.baidu.com进行查找操作.
-    fmt.Println(ip[0].String())
+	fmt.Println(ip[0].String())
 }
 
+func pack2unpack() {
+	var buf = make([]byte, 8)
+	binary.BigEndian.PutUint32(buf[:4], uint32(9000))
+	binary.BigEndian.PutUint32(buf[4:], uint32(9000))
+
+
+	fmt.Println(binary.BigEndian.Uint32(buf[:4]))
+	fmt.Println(binary.BigEndian.Uint32(buf[4:]))
+	fmt.Println(binary.BigEndian.Uint64(buf))
+    
+    binary.BigEndian.PutUint32(buf[:4], uint32(2500))
+	binary.BigEndian.PutUint32(buf[4:], uint32(1))
+    
+    fmt.Println(binary.BigEndian.Uint32(buf[:4]))
+	fmt.Println(binary.BigEndian.Uint32(buf[4:]))
+	fmt.Println(binary.BigEndian.Uint64(buf))
+    //19327352841000
+    
+    var unbuf = make([]byte, 8)
+    binary.BigEndian.PutUint64(unbuf, uint64(2576980377600))
+    fmt.Println(binary.BigEndian.Uint32(unbuf[:4]))
+	fmt.Println(binary.BigEndian.Uint32(unbuf[4:]))
+    
+}
 func main() {
-    var htmls = make([]string, 0)
-    doc, _ := goquery.NewDocument("http://www.oschina.net/news/71633/mongodb-3-3-3")
-    // doc.
-    // Find(`#NewsChannel > div.NewsBody > div > div.NewsEntity > div.Body.NewsContent.TextContent>p,
-    // #NewsChannel > div.NewsBody > div > div.NewsEntity > div.Body.NewsContent.TextContent>ul`).
-    // Not("p[style]").
-    // Each(func(i int, q *goquery.Selection){
-    //     fmt.Println(q.Html())
-    //     s, _ := q.Html()
-    //     htmls = append(htmls, s)        
-    // })
-    // fmt.Println( strings.Join(htmls, ""))
-    // goquery.NewDocumentFromReader(bytes.NewReader
-     
-    doc.Find("#OSChina_News_71633").Each(func(i int, q *goquery.Selection){
-        html, _ := q.Html()
-        htmls = append(htmls, html)             
-    })
-    
-    sub, _ := goquery.NewDocumentFromReader(bytes.NewReader([]byte(strings.Join(htmls, ""))))
-    
-    sub.Find("img").Each(func(i int, q *goquery.Selection) {
-        fmt.Println(q.Attr("src"))
-    })
-    
-    netName()
-           
-}
+	var htmls = make([]string, 0)
+	doc, _ := goquery.NewDocument("http://www.oschina.net/news/71633/mongodb-3-3-3")
+	// doc.
+	// Find(`#NewsChannel > div.NewsBody > div > div.NewsEntity > div.Body.NewsContent.TextContent>p,
+	// #NewsChannel > div.NewsBody > div > div.NewsEntity > div.Body.New
+	// Each(func(i int, q *goquery.Selection){
+	//     fmt.Println(q.Html())
+	//     s, _ := q.Html()
+	//     htmls = append(htmls, s)
+	// })
+	// fmt.Println( strings.Join(htmls, ""))
+	// goquery.NewDocumentFromReader(bytes.NewReader
 
+	doc.Find("#OSChina_News_71633").Each(func(i int, q *goquery.Selection) {
+		html, _ := q.Html()
+		htmls = append(htmls, html)
+	})
+
+	sub, _ := goquery.NewDocumentFromReader(bytes.NewReader([]byte(strings.Join(htmls, ""))))
+
+	sub.Find("img").Each(func(i int, q *goquery.Selection) {
+		fmt.Println(q.Attr("src"))
+	})
+
+	netName()
+
+	pack2unpack()
+}

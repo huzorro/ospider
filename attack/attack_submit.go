@@ -10,6 +10,7 @@ import (
     "fmt"
     "github.com/PuerkitoBio/goquery"
     "net"
+    "encoding/binary"
 )
 
 type AttackSubmit struct {
@@ -24,7 +25,12 @@ func (self *AttackSubmit) Process(payload string) {
     var (
         attack handler.FloodTarget
         api handler.FloodApi
+        powerlevel uint32
+        newPowerlevel uint32
+        time uint32
+        newTime uint32
     )
+    self.cfg.Log.Println("attack submit...")
     if err := json.Unmarshal([]byte(payload), &attack); err != nil {
         self.cfg.Log.Printf("json Unmarshal fails %s", err)
         return
@@ -44,11 +50,36 @@ func (self *AttackSubmit) Process(payload string) {
         return
     }  
     
-	err = stmtOut.QueryRow().Scan(&api.Id, &api.Name, &api.Api, &api.Powerlevel, &api.Time)
+     
+    rows, err := stmtOut.Query()
     if err != nil {
-        self.cfg.Log.Println("not found available api")
+        self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
+        return        
+    }
+    for rows.Next() {
+        err = rows.Scan(&api.Id, &api.Name, &api.Api, &api.Powerlevel, &api.Time)
+        if err != nil {
+            self.cfg.Log.Printf("rows.Scan (%s) fails %s", sqlStr, err)
+            return             
+        }
+        var powerlevelBuf = make([]byte, 8)
+        binary.BigEndian.PutUint64(powerlevelBuf, uint64(api.Powerlevel))
+        powerlevel = binary.BigEndian.Uint32(powerlevelBuf[:4])
+        newPowerlevel = binary.BigEndian.Uint32(powerlevelBuf[4:])
+        
+        var timeBuf = make([]byte, 8)
+        binary.BigEndian.PutUint64(timeBuf, uint64(api.Time))
+        time = binary.BigEndian.Uint32(timeBuf[:4])
+        newTime = binary.BigEndian.Uint32(timeBuf[4:])
+         
+        if newPowerlevel > 0 && newTime > 0 {                        
+             break;
+        } 
+    }
+    if newPowerlevel <= 0 || newTime <= 0 {
         return
     }
+    self.cfg.Log.Printf("powerlevel:%d-%d time:%d-%d", powerlevel, newPowerlevel, time, newTime)
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()
@@ -75,15 +106,25 @@ func (self *AttackSubmit) Process(payload string) {
     
     self.cfg.Log.Printf("{%s} {%s}", url.String(), doc.Text())
     
-    sqlStr = `update spider_flood_api set time = time - ?, powerlevel = powerlevel - ? , uptime = unix_timestamp() + ? where id = ?`
+    sqlStr = `update spider_flood_api set time = ?, powerlevel = ? , uptime = unix_timestamp() + ? where id = ?`
     
     stmtIn, err := self.cfg.Db.Prepare(sqlStr)
     defer stmtIn.Close()
     if err != nil {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
         return
-    }  
-    _, err = stmtIn.Exec(attack.Time, attack.Powerlevel, attack.Time, api.Id)
+    } 
+    var powerlevelBuf = make([]byte, 8)
+    binary.BigEndian.PutUint32(powerlevelBuf[:4], powerlevel)
+    binary.BigEndian.PutUint32(powerlevelBuf[4:], newPowerlevel - uint32(attack.Powerlevel)) 
+    
+    
+    var timeBuf = make([]byte, 8)
+    binary.BigEndian.PutUint32(timeBuf[:4], time)
+    binary.BigEndian.PutUint32(timeBuf[4:], newTime - uint32(attack.Time))
+
+    self.cfg.Log.Printf("powerlevel:%d-%d-%d time:%d-%d-%d", powerlevel, newPowerlevel, attack.Powerlevel, time, newTime,attack.Time)    
+    _, err = stmtIn.Exec(binary.BigEndian.Uint64(timeBuf), binary.BigEndian.Uint64(powerlevelBuf), attack.Time, api.Id)
     
     if err != nil {
         self.cfg.Log.Printf("update flood api fails %s", err)

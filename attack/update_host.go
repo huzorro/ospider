@@ -18,6 +18,7 @@ func (self *UpdateHost) Process(payload string) {
     var (
         attack handler.FloodTarget
     )
+    self.cfg.Log.Println("update host...")
     if err := json.Unmarshal([]byte(payload), &attack); err != nil {
         self.cfg.Log.Printf("json Unmarshal fails %s", err)
         return

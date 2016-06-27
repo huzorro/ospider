@@ -136,6 +136,11 @@ func main() {
         result := &attack.Task{cfg, co, cconnection, processors}
         result.AddProcessor(attack.NewAttackSubmit(co)).AddProcessor(attack.NewUpdateHost(co))
         result.Handler()        
+        
+        restCron := crontab.NewRest()
+        restCron.Cfg = cfg.Cfg
+        restCron.Ospider = common.Ospider{Log: logger, P: redisPool, Db: db} 
+        restCron.Handler()
                      
     }
 	if *spiderPtr {

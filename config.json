@@ -3,6 +3,7 @@
 	"dburi":"ospider:t92ydUoLHQ0$VQGi@tcp(127.0.0.1:3306)/ospider?charset=utf8",
 	"pageSize":50,    
     "flushCron":"20 * * * * *",
+    "restCron":"10 * * * * *",
     "taskQueueName":"spiderTaskQueueRoot1",
     "resultQueueName":"spiderResultQueueRoot1",
     "linkQueueName":"spiderLinkQueueRoot1",

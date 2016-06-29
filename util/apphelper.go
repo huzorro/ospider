@@ -144,7 +144,7 @@ func Utf8ToGbk(s []byte) ([]byte, error) {
 func LookupHost(name string) (string, error) {    
     
     
-    api := `http://api.91cha.com/ipsame?key=01f3b8d6a39143aabafe332f338385bc`
+    api := `http://api.91cha.com/ip?key=509d0020d1e1464aac10e6b0597f87da`
     
     url, _ :=  url.ParseRequestURI(api)
     query := url.Query()
@@ -157,7 +157,12 @@ func LookupHost(name string) (string, error) {
         Msg string `json:"msg"`
         Data struct {
             Ip string `json:"ip"`
-            Hosts []string `json:"hosts"`
+            Country string `json:"country"`
+            Area string `json:"area"`
+            Province string `json:"province"`
+            City string `json:"city"`
+            District string `json:"district"`
+            Linetype string `json:"linetype"`
         } `json:"data"`
     }
 

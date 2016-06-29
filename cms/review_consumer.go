@@ -39,9 +39,10 @@ func (self *Task) AddProcessor(p common.Processor) *Task {
 }
 func (consumer *Consumer) Consume(delivery rmq.Delivery) {
 	consumer.count++
-	consumer.task.Log.Printf("%s consumed %d %s", consumer.name, consumer.count, delivery.Payload())
+    elem := delivery.Payload()
+	consumer.task.Log.Printf("%s consumed %d %s", consumer.name, consumer.count, elem)
 	for _, p := range consumer.task.Processors {
-		p.Process(delivery.Payload())
+		p.Process(elem)
 	}
 	delivery.Ack()
 }

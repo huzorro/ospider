@@ -176,6 +176,9 @@ func LookupHost(name string) (string, error) {
         fmt.Printf("Unmarshal fails %s", err)
         return "", err
     }
-    fmt.Println(r) 
+    fmt.Println(r)
+    if r.State != 1 || r.Data.Ip == "" {
+        return "", errors.New("lookup host fails")
+    } 
     return r.Data.Ip, nil
 }

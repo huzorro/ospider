@@ -54,7 +54,7 @@ func pack2unpack() {
     //19327352841000
     
     var unbuf = make([]byte, 8)
-    binary.BigEndian.PutUint64(unbuf, uint64(115964117018400))
+    binary.BigEndian.PutUint64(unbuf, uint64(38654705670000))
     fmt.Println(binary.BigEndian.Uint32(unbuf[:4]))
 	fmt.Println(binary.BigEndian.Uint32(unbuf[4:]))
     

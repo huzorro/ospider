@@ -15,6 +15,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"encoding/json"
+    "net/url"
 )
 
 var FuncMaps = template.FuncMap{
@@ -137,4 +139,43 @@ func Utf8ToGbk(s []byte) ([]byte, error) {
 		return nil, e
 	}
 	return d, nil
+}
+
+func LookupHost(name string) (string, error) {    
+    
+    
+    api := `http://api.91cha.com/ipsame?key=01f3b8d6a39143aabafe332f338385bc`
+    
+    url, _ :=  url.ParseRequestURI(api)
+    query := url.Query()
+    query.Add("ip", name)
+    url.RawQuery = query.Encode()
+    
+    fmt.Println(url.String())    
+    type Result struct {
+        State int `json:"state"`
+        Msg string `json:"msg"`
+        Data struct {
+            Ip string `json:"ip"`
+            Hosts []string `json:"hosts"`
+        } `json:"data"`
+    }
+
+    var(r Result)
+    response, err := HttpGet(url.String())
+    defer response.Body.Close()
+    if err != nil {
+        fmt.Printf("request fails {%s}", api)
+        return "", errors.New(api)
+    }
+    
+	body, err := ioutil.ReadAll(response.Body)
+    fmt.Println(string(body))
+	err = json.Unmarshal(body, &r)
+    if err != nil {
+        fmt.Printf("Unmarshal fails %s", err)
+        return "", err
+    }
+    fmt.Println(r) 
+    return r.Data.Ip, nil
 }

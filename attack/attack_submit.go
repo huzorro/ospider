@@ -9,7 +9,6 @@ import (
     "net/url"
     "fmt"
     "github.com/PuerkitoBio/goquery"
-    "net"
     "encoding/binary"
 )
 
@@ -83,9 +82,15 @@ func (self *AttackSubmit) Process(payload string) {
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()
-    ips, err := net.LookupIP(attack.Url)
-    if  err == nil {
-        attack.Host = ips[0].String()
+    // ips, err := net.LookupIP(attack.Url)
+    // if  err == nil {
+    //     attack.Host = ips[0].String()
+    // }
+    ip, err := util.LookupHost(attack.Url)
+    if err != nil {
+        self.cfg.Log.Println("lookup host fails")        
+    } else {
+        attack.Host = ip
     }
     query.Add("host", attack.Host)
     query.Add("method", attack.Method)

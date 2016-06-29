@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+    "github.com/huzorro/ospider/util"
 )
 
 func netName() {
@@ -23,9 +24,15 @@ func netName() {
 	fmt.Println(cname) //www.a.shifen.com,查找规范的dns主机名字
 	host, _ := net.LookupHost("www.wxbsj.com")
 	fmt.Println(host) //[111.13.100.92 111.13.100.91],查找给定域名的host名称
-	ip, _ := net.LookupIP("www.juanl.net")
+	ip, _ := net.LookupIP("www.hndydb.com")
 	fmt.Println(ip) //[111.13.100.92 111.13.100.91],查找给定域名的ip地址,可通过nslookup www.baidu.com进行查找操作.
 	fmt.Println(ip[0].String())
+    ipp, err := util.LookupHost("www.juanl.net")
+    
+    if err != nil {
+        fmt.Println(err)
+    }
+    fmt.Printf("ip:%s ``", ipp)
 }
 
 func pack2unpack() {
@@ -47,7 +54,7 @@ func pack2unpack() {
     //19327352841000
     
     var unbuf = make([]byte, 8)
-    binary.BigEndian.PutUint64(unbuf, uint64(2576980377600))
+    binary.BigEndian.PutUint64(unbuf, uint64(115964117018400))
     fmt.Println(binary.BigEndian.Uint32(unbuf[:4]))
 	fmt.Println(binary.BigEndian.Uint32(unbuf[4:]))
     

@@ -4,7 +4,7 @@ import (
 	"github.com/huzorro/ospider/common"
 	"github.com/huzorro/ospider/web/handler" 
 	"encoding/json"
-    "net"
+    "github.com/huzorro/ospider/util"
 )
 
 type UpdateHost struct {
@@ -32,10 +32,16 @@ func (self *UpdateHost) Process(payload string) {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
         return
     } 
-    ips, err := net.LookupIP(attack.Url)
-    if  err == nil {
-        attack.Host = ips[0].String()
-    }     
+    // ips, err := net.LookupIP(attack.Url)
+    // if  err == nil {
+    //     attack.Host = ips[0].String()
+    // } 
+    ip, err := util.LookupHost(attack.Url)
+    if err != nil {
+        self.cfg.Log.Println("lookup host fails")        
+    } else {
+        attack.Host = ip
+    }        
     _, err = stmtIn.Exec(attack.Host, attack.Url)
     
     if err != nil {

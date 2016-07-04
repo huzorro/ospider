@@ -168,8 +168,12 @@ func LookupHost(name string) (string, error) {
 
     var(r Result)
     response, err := HttpGet(url.String())
-    defer response.Body.Close()
-    if err != nil {
+    defer func() {
+        if response != nil {
+            response.Body.Close()
+        }
+    }()
+    if err != nil || response == nil {
         fmt.Printf("request fails {%s}", api)
         return "", errors.New(api)
     }

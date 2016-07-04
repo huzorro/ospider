@@ -75,10 +75,10 @@ func (self *AttackSubmit) Process(payload string) {
              break;
         } 
     }
+    self.cfg.Log.Printf("powerlevel:%d-%d time:%d-%d", powerlevel, newPowerlevel, time, newTime)    
     if newPowerlevel <= 0 || newTime <= 0 {
         return
     }
-    self.cfg.Log.Printf("powerlevel:%d-%d time:%d-%d", powerlevel, newPowerlevel, time, newTime)
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()
@@ -101,8 +101,12 @@ func (self *AttackSubmit) Process(payload string) {
     
     self.cfg.Log.Println(url.String()) 
     response, err := util.HttpGet(url.String())
-    defer response.Body.Close()
-    if err != nil {
+    defer func() {
+        if response != nil {
+            response.Body.Close()
+        }
+    }()
+    if err != nil || response == nil {
         self.cfg.Log.Printf("request fails {%s}", url.String())
         return        
     }

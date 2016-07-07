@@ -110,7 +110,7 @@ func (self *AttackSubmit) Process(payload string) {
         self.lock.Unlock()
         return
     } 
-        
+    self.lock.Unlock()    
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()

@@ -38,6 +38,10 @@ func main() {
 	webPtr := flag.Bool("web", false, "web sm start")
 	//crontab
 	cronTaskPtr := flag.Bool("cron", false, "crontab task")
+    //attack crontab
+    ca := flag.Bool("ca", false, "attack crontab")
+    //reset crontab
+    reset := flag.Bool("reset", false, "reset crontab")
     //attack
     attackPtr := flag.Bool("attack", false, "attack task")
 	//spider
@@ -122,26 +126,27 @@ func main() {
 		cronTask.Handler()
 		// cronTask := &crontab.Task{common.Ospider{Log:logger, P:redisPool, Db:db}, cfg}
 	}
-    if *attackPtr {
+    if *ca {
         attackCron := crontab.NewAttack()
         attackCron.Cfg = cfg.Cfg
 		pconnection := rmq.OpenConnection("attack_producer", "tcp", "localhost:6379", 0)
 		attackCron.Ospider = common.Ospider{Log: logger, P: redisPool, Db: db}  
 		attackCron.Queue = pconnection.OpenQueue(cfg.AttackQueueName)        
-        attackCron.Handler() 
-        
+        attackCron.Handler()                     
+    }
+    if *reset {
+        restCron := crontab.NewRest()
+        restCron.Cfg = cfg.Cfg
+        restCron.Ospider = common.Ospider{Log: logger, P: redisPool, Db: db} 
+        restCron.Handler()          
+    }
+    if *attackPtr {        
 		cconnection := rmq.OpenConnection("attack_consumer", "tcp", "localhost:6379", 0)
 		co := common.Ospider{Log: logger, P: redisPool, Db: db}
         processors := make([]common.Processor, 0)
         result := &attack.Task{cfg, co, cconnection, processors}
         result.AddProcessor(attack.NewAttackSubmit(co)).AddProcessor(attack.NewUpdateHost(co))
-        result.Handler()        
-        
-        restCron := crontab.NewRest()
-        restCron.Cfg = cfg.Cfg
-        restCron.Ospider = common.Ospider{Log: logger, P: redisPool, Db: db} 
-        restCron.Handler()
-                     
+        result.Handler()                                     
     }
 	if *spiderPtr {
 		//spider

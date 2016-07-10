@@ -35,7 +35,7 @@ func (self *AttackSubmit) Process(payload string) {
         return
     }
     self.lock.Lock()
-    defer self.lock.Unlock()
+    // defer self.lock.Unlock()
     // sqlStr := `select id, name, api, powerlevel, time 
     //             from spider_flood_api where uptime < unix_timestamp()  
     //             and time > 0 and powerlevel > 0 and status = 1`
@@ -46,6 +46,7 @@ func (self *AttackSubmit) Process(payload string) {
     defer stmtOut.Close()
     if err != nil {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
+        self.lock.Unlock()
         return
     }  
     
@@ -53,12 +54,14 @@ func (self *AttackSubmit) Process(payload string) {
     rows, err := stmtOut.Query()
     if err != nil {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
+        self.lock.Unlock()
         return        
     }
     for rows.Next() {
         err = rows.Scan(&api.Id, &api.Name, &api.Api, &api.Powerlevel, &api.Time)
         if err != nil {
             self.cfg.Log.Printf("rows.Scan (%s) fails %s", sqlStr, err)
+            self.lock.Unlock()
             return             
         }
         var powerlevelBuf = make([]byte, 8)
@@ -77,6 +80,7 @@ func (self *AttackSubmit) Process(payload string) {
     }
     self.cfg.Log.Printf("powerlevel:%d-%d time:%d-%d", powerlevel, newPowerlevel, time, newTime)    
     if newPowerlevel <= 0 || newTime <= 0 {
+        self.lock.Unlock()
         return
     }
     
@@ -86,6 +90,7 @@ func (self *AttackSubmit) Process(payload string) {
     defer stmtIn.Close()
     if err != nil {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
+        self.lock.Unlock()
         return
     } 
     var powerlevelBuf = make([]byte, 8)
@@ -102,8 +107,10 @@ func (self *AttackSubmit) Process(payload string) {
     
     if err != nil {
         self.cfg.Log.Printf("update flood api fails %s", err)
+        self.lock.Unlock()
         return
     } 
+    self.lock.Unlock()    
     //attack submit
     url, _ :=  url.ParseRequestURI(api.Api)
     query := url.Query()

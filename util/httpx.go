@@ -30,7 +30,7 @@ func NewHttpx(reqUrl string) (h *Httpx) {
 		Url:     reqUrl,
 		Headers: headers,
 		Method:  "GET",
-		Timeout: 30,
+		Timeout: 15,
 	}
 }
 
@@ -58,6 +58,11 @@ func (h *Httpx) AddPostValue(key string, values []string) {
 
 //发送请求
 func (h *Httpx) Send() (response *http.Response, err error) {
+    //增加http请求和读取超时
+    c := make(chan struct{})
+    time.AfterFunc(time.Duration(h.Timeout)*time.Second, func() {
+        close(c)
+    })    
 	if h.Url == "" {
 		return nil, errors.New("URL is empty")
 	}
@@ -76,7 +81,7 @@ func (h *Httpx) Send() (response *http.Response, err error) {
 	} else {
 		req, _ = http.NewRequest(h.Method, h.Url, nil)
 	}
-
+    req.Cancel = c
 	//headers
 	if len(h.Headers) > 0 {
 		for k, v := range h.Headers {

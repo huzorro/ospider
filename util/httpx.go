@@ -136,6 +136,7 @@ func (h *Httpx) Send() (response *http.Response, err error) {
 
 	client := &http.Client{
 		Transport: transport,
+        Timeout: time.Duration(h.Timeout)*time.Second,
 	}
 	response, err = client.Do(req)
 	return response, err

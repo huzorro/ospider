@@ -34,8 +34,8 @@ func (self *AttackSubmit) Process(payload string) {
         self.cfg.Log.Printf("json Unmarshal fails %s", err)
         return
     }
-    // self.lock.Lock()
-    // defer self.lock.Unlock()
+    self.lock.Lock()
+    defer self.lock.Unlock()
     // sqlStr := `select id, name, api, powerlevel, time 
     //             from spider_flood_api where uptime < unix_timestamp()  
     //             and time > 0 and powerlevel > 0 and status = 1`

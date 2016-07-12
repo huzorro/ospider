@@ -52,6 +52,7 @@ func (self *AttackSubmit) Process(payload string) {
     
      
     rows, err := stmtOut.Query()
+    defer rows.Close()
     if err != nil {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
         // self.lock.Unlock()
@@ -81,6 +82,7 @@ func (self *AttackSubmit) Process(payload string) {
     self.cfg.Log.Printf("powerlevel:%d-%d time:%d-%d", powerlevel, newPowerlevel, time, newTime)    
     if newPowerlevel <= 0 || newTime <= 0 {
         // self.lock.Unlock()
+        self.cfg.Log.Printf("powerlevel or time run out")
         return
     }
     
@@ -118,7 +120,9 @@ func (self *AttackSubmit) Process(payload string) {
     // if  err == nil {
     //     attack.Host = ips[0].String()
     // }
+    self.cfg.Log.Println("lookup host start...")
     ip, err := util.LookupHost(attack.Url)
+    self.cfg.Log.Println("lookup host end...")
     if err != nil {
         self.cfg.Log.Println("lookup host fails")        
     } else {
@@ -132,7 +136,9 @@ func (self *AttackSubmit) Process(payload string) {
     url.RawQuery = query.Encode()
     
     self.cfg.Log.Println(url.String()) 
+    self.cfg.Log.Println("attack request start...")
     response, err := util.HttpGet(url.String())
+    self.cfg.Log.Println("attack request end...")
     defer func() {
         if response != nil {
             response.Body.Close()
@@ -142,11 +148,11 @@ func (self *AttackSubmit) Process(payload string) {
         self.cfg.Log.Printf("request fails {%s}", url.String())
         return        
     }
-        
+    self.cfg.Log.Println("attack response read start...")    
     doc, _ := goquery.NewDocumentFromResponse(response)
     
     self.cfg.Log.Printf("{%s} {%s}", url.String(), doc.Text())
-    
+    self.cfg.Log.Println("attack response read end...")
     // sqlStr = `update spider_flood_api set time = ?, powerlevel = ? , uptime = unix_timestamp() + ? where id = ?`
     
     // stmtIn, err := self.cfg.Db.Prepare(sqlStr)

@@ -134,24 +134,24 @@ func (h *Httpx) Send() (response *http.Response, err error) {
 		}
 	}
 
-	// client := &http.Client{
-	// 	Transport: transport,
-    //     Timeout: time.Duration(h.Timeout)*time.Second,
-	// }
-    client := &http.Client{
-        Transport: &http.Transport{
-            Dial: func(netw, addr string) (net.Conn, error) {
-                conn, err := net.DialTimeout(netw, addr, time.Second*5)
-                if err != nil {
-                    return nil, err
-                }
-                conn.SetDeadline(time.Now().Add(time.Second * 5))
-                return conn, nil
-            },
-            ResponseHeaderTimeout: time.Second * 5,
-        },
+	client := &http.Client{
+		Transport: transport,
         Timeout: time.Duration(h.Timeout)*time.Second,
-    }    
+	}
+    // client := &http.Client{
+    //     Transport: &http.Transport{
+    //         Dial: func(netw, addr string) (net.Conn, error) {
+    //             conn, err := net.DialTimeout(netw, addr, time.Second*5)
+    //             if err != nil {
+    //                 return nil, err
+    //             }
+    //             conn.SetDeadline(time.Now().Add(time.Second * 5))
+    //             return conn, nil
+    //         },
+    //         ResponseHeaderTimeout: time.Second * 5,
+    //     },
+    //     Timeout: time.Duration(h.Timeout)*time.Second,
+    // }    
 	response, err = client.Do(req)
 	return response, err
 

@@ -137,9 +137,9 @@ function one(json) {
             
             
             if (json.status) {
-                htmls.push('<input type="radio" name="Status" value=0 >停用<input type="radio" name="Status" value=1 checked>启用');
+                htmls.push('<input type="radio" name="Status" value=0 >停用<input type="radio" name="Status" value=1 checked>启用<input type="radio" name="Status" value=2>删除');
             } else {
-                htmls.push('<input type="radio" name="Status" value=0 checked>停用<input type="radio" name="Status" value=1 >启用');
+                htmls.push('<input type="radio" name="Status" value=0 checked>停用<input type="radio" name="Status" value=1 >启用<input type="radio" name="Status" value=２>删除');
             }
             $("#Status").html(htmls.join(""));
         }

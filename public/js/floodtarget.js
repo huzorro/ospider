@@ -136,11 +136,15 @@ function one(json) {
             });
             
             
-            if (json.status) {
+            if (json.status == 1) {
                 htmls.push('<input type="radio" name="Status" value=0 >停用<input type="radio" name="Status" value=1 checked>启用<input type="radio" name="Status" value=2>删除<input type="radio" name="Status" value=3>手动ip<input type="radio" name="Status" value=5>zmap');
-            } else {
-                htmls.push('<input type="radio" name="Status" value=0 checked>停用<input type="radio" name="Status" value=1 >启用<input type="radio" name="Status" value=２>删除<input type="radio" name="Status" value=3>手动ip<input type="radio" name="Status" value=5>zmap');
-            }
-            $("#Status").html(htmls.join(""));
+            } else if(json.status == 0) {
+                htmls.push('<input type="radio" name="Status" value=0 checked>停用<input type="radio" name="Status" value=1 >启用<input type="radio" name="Status" value=２>删除<input type="radio" name="Status" value=3>手动ip<input type="radio" name="Status" value=5>zmap');               
+            }else if(json.status == 3) {
+                htmls.push('<input type="radio" name="Status" value=0 >停用<input type="radio" name="Status" value=1 >启用<input type="radio" name="Status" value=２>删除<input type="radio" name="Status" value=3 checked>手动ip<input type="radio" name="Status" value=5>zmap');               
+            }else if(json.status == 5) {
+                htmls.push('<input type="radio" name="Status" value=0 >停用<input type="radio" name="Status" value=1 >启用<input type="radio" name="Status" value=２>删除<input type="radio" name="Status" value=3 >手动ip<input type="radio" name="Status" value=5 checked>zmap');               
+            }              
+            $("#Status").html(htmls.join("")); 
         }
 }

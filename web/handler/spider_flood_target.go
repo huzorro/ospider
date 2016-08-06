@@ -258,7 +258,7 @@ func GetfloodTargets(r *http.Request, w http.ResponseWriter, db *sql.DB, log *lo
 
 	switch spUser.Access.Rule {
 	case user.GROUP_PRI_ALL:
-        con = "where a.status in(0, 1) "
+        con = "where a.status in(0, 1, 3, 5) "
 	case user.GROUP_PRI_ALLOW:
 		con = "WHERE a.uid IN(" + strings.Join(spUser.Access.Group, ",") + ") and a.status in(0, 1) "
 	case user.GROUP_PRI_BAN:

@@ -87,4 +87,8 @@ func main() {
 	netName()
 
 	pack2unpack()
+    fmt.Println(0 & 1)
+    fmt.Println(1 & 1)
+    fmt.Println(2 & 1)
+    fmt.Println(3 & 1)    
 }

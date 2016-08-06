@@ -56,7 +56,7 @@ func (self *Attack) Handler() {
 
 			attackJson, _ := json.Marshal(attack)            
             subCron.RemoveJob(fmt.Sprintf("%d", attack.Id))
-            if attack.Status != 1 {
+            if attack.Status & 1 != 0  {
                 continue
             }
 			subCron.AddFunc(attack.Crontab.Cron, func() {

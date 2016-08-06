@@ -120,14 +120,14 @@ func (self *AttackSubmit) Process(payload string) {
     // if  err == nil {
     //     attack.Host = ips[0].String()
     // }
-    self.cfg.Log.Println("lookup host start...")
-    ip, err := util.LookupHost(attack.Url)
-    self.cfg.Log.Println("lookup host end...")
-    if err != nil {
-        self.cfg.Log.Println("lookup host fails")        
-    } else {
-        attack.Host = ip
-    }
+    // self.cfg.Log.Println("lookup host start...")
+    // ip, err := util.LookupHost(attack.Url)
+    // self.cfg.Log.Println("lookup host end...")
+    // if err != nil {
+    //     self.cfg.Log.Println("lookup host fails")        
+    // } else {
+    //     attack.Host = ip
+    // }
     query.Add("host", attack.Host)
     query.Add("method", attack.Method)
     query.Add("time", fmt.Sprintf("%d", attack.Time))

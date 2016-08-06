@@ -5,6 +5,7 @@ import (
 	"github.com/huzorro/ospider/web/handler" 
 	"encoding/json"
     "github.com/huzorro/ospider/util"
+    "net"
 )
 
 type UpdateHost struct {
@@ -24,7 +25,7 @@ func (self *UpdateHost) Process(payload string) {
         return
     }
     
-    sqlStr := `update spider_flood_target set host = ? where url = ?`
+    sqlStr := `update spider_flood_target set host = ? where url = ? and status = 1`
     
     stmtIn, err := self.cfg.Db.Prepare(sqlStr)
     defer stmtIn.Close()
@@ -32,16 +33,20 @@ func (self *UpdateHost) Process(payload string) {
         self.cfg.Log.Printf("db.Prepare(%s) fails %s", sqlStr, err)
         return
     } 
-    // ips, err := net.LookupIP(attack.Url)
-    // if  err == nil {
-    //     attack.Host = ips[0].String()
-    // } 
+
     ip, err := util.LookupHost(attack.Url)
     if err != nil {
-        self.cfg.Log.Println("lookup host fails")        
-    } else {
+        self.cfg.Log.Println("lookup host fails for api") 
+        ips, err := net.LookupIP(attack.Url)
+        if  err == nil {
+            if ips[0].String() != "127.0.0.1" {
+                attack.Host = ips[0].String()
+            }
+        }                
+    } else {                
         attack.Host = ip
-    }        
+    }    
+    self.cfg.Log.Printf("lookup host %s", attack.Host)    
     _, err = stmtIn.Exec(attack.Host, attack.Url)
     
     if err != nil {

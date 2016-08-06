@@ -135,16 +135,16 @@ func (self *AttackSubmit) Process(payload string) {
     query.Add("powerlevel", fmt.Sprintf("%d", attack.Powerlevel))
     u.RawQuery = query.Encode()
     
-    self.cfg.Log.Println(u.String()) 
+    self.cfg.Log.Println(u.String())
     self.cfg.Log.Println("attack request start...")
-    // response, err := util.HttpGet(u.String())
+    response, err := util.HttpGet(u.String())
     //目标api为了防止ddos采用了302跳转然后自动刷新到目标api的方法
     //采用headless浏览器渲染目标api
-    postValues := url.Values{}
-    postValues.Add("url", u.String())
-    postValues.Add("renderTime", "30")
-    postValues.Add("script", "setTimeout(function() { console.log(document);},10000)")    
-    response, err := util.HttpPost("http://localhost:10010/doload", postValues)
+    // postValues := url.Values{}
+    // postValues.Add("url", u.String())
+    // postValues.Add("renderTime", "30")
+    // postValues.Add("script", "setTimeout(function() { console.log(document);},10000)")    
+    // response, err := util.HttpPost("http://localhost:10010/doload", postValues)
     
     self.cfg.Log.Println("attack request end...")
     defer func() {
